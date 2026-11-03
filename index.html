@@ -13,7 +13,8 @@
       var fromHtml = document.documentElement.lang;
       return (fromUrl || fromHtml || '').toLowerCase();
     }
-    var hideVoice = VOICE_DISABLED_LOCALES.indexOf(getPageLocale()) !== -1;
+    var locale = getPageLocale();
+    var hideVoice = VOICE_DISABLED_LOCALES.indexOf(locale) !== -1;
 
     var ns = document.createElement('script');
     ns.src = ('https://chatapps-us.netomi.com/app/script.js');ns.type = 'text/javascript'; ns.async = true;
@@ -21,29 +22,54 @@
     var s = document.getElementsByTagName('script')[0];s.parentNode.insertBefore(ns, s);
     ns.onload = function () {
       window.Netomi.chat.init(() => {
+        // Test page only: pass the language to the VA (es_MX -> es, pt_BR -> pt), like the demo pages do
+        window.NETOMI_WEB_WIDGET.publish('VISITOR_INFO', { lang: locale.split(/[-_]/)[0] || 'en' });
         if (hideVoice) {
           window.Netomi.chat.changeBotConfig({ voiceConfig: { enabled: false } });
         }
       });
     };
   })();
+
+  // ---- Test helper: switching language starts a fresh session ----
+  // Clears the widget's cookies and storage, then reloads, so the greeting
+  // fires again in the newly selected language.
+  function switchLanguage(lang) {
+    try {
+      document.cookie.split(';').forEach(function(c) {
+        var name = c.split('=')[0].trim();
+        document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+      });
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (e) {}
+    window.location.href = lang ? ('?language=' + lang) : '?';
+  }
+  window.switchLanguage = switchLanguage;
 </script>
 
 <style>
   body, html { height: 100%; margin: 0; font-family: system-ui, sans-serif; }
   .bg { height: 100%; width: 100%; background: url("https://demo.netomi.com/web/Paramount/paramount-international.png") center / cover no-repeat; }
-  .test-banner { position: fixed; top: 16px; left: 16px; z-index: 10; background: rgba(0,0,0,0.8); color: #fff; padding: 12px 16px; border-radius: 8px; font-size: 14px; line-height: 1.7; }
-  .test-banner a { color: #7fb2ff; margin-right: 10px; }
+  .test-banner { position: fixed; top: 16px; left: 16px; z-index: 10; background: rgba(0,0,0,0.85); color: #fff; padding: 12px 16px; border-radius: 8px; font-size: 14px; line-height: 1.7; max-width: 440px; }
+  .test-banner button { background: #0064FF; color: #fff; border: 0; border-radius: 5px; padding: 5px 10px; margin: 2px 4px 2px 0; cursor: pointer; font-size: 13px; }
+  .test-banner .note { color: #cfe0ff; font-size: 12px; margin-top: 6px; }
 </style>
 </head>
 <body>
   <div class="test-banner">
     <div>Language: <strong id="loc"></strong> | Expected mic: <strong id="mic"></strong></div>
     <div>
-      <a href="?language=fr_CA">fr_CA</a><a href="?language=FR-CA">FR-CA</a><a href="?language=fr">fr</a>
-      <a href="?language=en_US">en_US</a><a href="?language=de">de</a><a href="?language=es_MX">es_MX</a>
-      <a href="?language=pt_BR">pt_BR</a><a href="?language=it">it</a><a href="?">none</a>
+      <button onclick="switchLanguage('fr_CA')">fr_CA</button>
+      <button onclick="switchLanguage('fr')">fr</button>
+      <button onclick="switchLanguage('en_US')">en_US</button>
+      <button onclick="switchLanguage('de')">de</button>
+      <button onclick="switchLanguage('es_MX')">es_MX</button>
+      <button onclick="switchLanguage('pt_BR')">pt_BR</button>
+      <button onclick="switchLanguage('it')">it</button>
+      <button onclick="switchLanguage('')">none</button>
     </div>
+    <div class="note">Switching clears the session and reloads, so the greeting restarts in the chosen language.</div>
   </div>
   <div class="bg"></div>
   <script>
