@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script>
+  (function() {
+    // Add language codes (lowercase) where the Digital Voice mic should be hidden, e.g. ['fr_ca', 'fr-ca']
+    var VOICE_DISABLED_LOCALES = ['fr_ca', 'fr-ca'];
+
+    function getPageLocale() {
+      var fromUrl = new URLSearchParams(window.location.search).get('language');
+      var fromHtml = document.documentElement.lang;
+      return (fromUrl || fromHtml || '').toLowerCase();
+    }
+    var hideVoice = VOICE_DISABLED_LOCALES.indexOf(getPageLocale()) !== -1;
+
+    var ns = document.createElement('script');
+    ns.src = ('https://chatapps-us.netomi.com/app/script.js');ns.type = 'text/javascript'; ns.async = true;
+    ns.setAttribute('botRefId', 'a6712159-6a5d-4053-bb8f-a2ac9159a4de');
+    var s = document.getElementsByTagName('script')[0];s.parentNode.insertBefore(ns, s);
+    ns.onload = function () {
+      window.Netomi.chat.init(() => {
+        if (hideVoice) {
+          window.Netomi.chat.changeBotConfig({ voiceConfig: { enabled: false } });
+        }
+      });
+    };
+  })();
+</script>
+
+<style>
+  body, html { height: 100%; margin: 0; font-family: system-ui, sans-serif; }
+  .bg { height: 100%; width: 100%; background: url("https://demo.netomi.com/web/Paramount/paramount-international.png") center / cover no-repeat; }
+  .test-banner { position: fixed; top: 16px; left: 16px; z-index: 10; background: rgba(0,0,0,0.8); color: #fff; padding: 12px 16px; border-radius: 8px; font-size: 14px; line-height: 1.7; }
+  .test-banner a { color: #7fb2ff; margin-right: 10px; }
+</style>
+</head>
+<body>
+  <div class="test-banner">
+    <div>Language: <strong id="loc"></strong> | Expected mic: <strong id="mic"></strong></div>
+    <div>
+      <a href="?language=fr_CA">fr_CA</a><a href="?language=FR-CA">FR-CA</a><a href="?language=fr">fr</a>
+      <a href="?language=en_US">en_US</a><a href="?language=de">de</a><a href="?language=es_MX">es_MX</a>
+      <a href="?language=pt_BR">pt_BR</a><a href="?language=it">it</a><a href="?">none</a>
+    </div>
+  </div>
+  <div class="bg"></div>
+  <script>
+    var l = new URLSearchParams(location.search).get('language') || document.documentElement.lang || '(none)';
+    document.getElementById('loc').textContent = l;
+    document.getElementById('mic').textContent = ['fr_ca','fr-ca'].indexOf(l.toLowerCase()) !== -1 ? 'hidden' : 'shown';
+  </script>
+</body>
+</html>
